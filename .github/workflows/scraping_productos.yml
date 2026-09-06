@@ -1,0 +1,43 @@
+name: Scraping de Productos Diario
+
+# 1. CUÁNDO SE EJECUTA
+on:
+  schedule:
+    - cron: '0 05 * * *'  # Todos los días a las 5:00 AM UTC
+  workflow_dispatch:      # Permite ejecutarlo manualmente
+
+# 2. QUÉ HACE LA MÁQUINA VIRTUAL
+jobs:
+  job_scraping:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Paso A: Descargar nuestro código del repositorio
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      # Paso B: Instalar Python
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # Paso C: Instalar las librerías necesarias
+      - name: Instalar librerías
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 pandas
+
+      # Paso D: Ejecutar nuestro script de Web Scraping
+      - name: Ejecutar script de Web Scraping
+        run: python scraper_productos.py
+
+      # Paso E: Guardar y subir el CSV actualizado a GitHub
+      - name: Guardar cambios en GitHub
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add catalogo_productos.csv
+          git commit -m "Actualización automática del catálogo" || exit 0
+          git push
